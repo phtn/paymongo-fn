@@ -1,0 +1,32 @@
+{
+  "name": "@re-up/paymongo-fn",
+  "description": "Paymongo Functional SDK | Complete with tRPC server side callers and Zod schemas",
+  "keywords": [
+    "paymongo",
+    "sdk"
+  ],
+  "author": {
+    "name": "xpriori"
+  },
+  "version": "0.0.14",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "scripts": {
+    "build": "bunchee -o ./lib/index.js",
+    "dev": "bunchee -w --no-clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bunchee": "^5.4.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@trpc/server": "^10.45.2",
+    "axios": "^1.7.7",
+    "zod": "^3.23.8"
+  },
+  "license": "MIT"
+}
