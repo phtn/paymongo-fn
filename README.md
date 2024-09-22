@@ -34,7 +34,7 @@ const onCheckout = async (params) => await paymongo.checkout.create(params);
 // trpc/router.ts
 
 const router = createRouter({
-    checkout: checkoutProcedure.mutate(async({input}) => await paymongo.checkout.create(input)
+    checkout: checkoutProcedure.mutation(async({input}) => await paymongo.checkout.create(input)
 })
 
 // trpc/caller.ts
