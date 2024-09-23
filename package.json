@@ -5,20 +5,25 @@
     "paymongo",
     "sdk"
   ],
-  "author": {
-    "name": "xpriori"
-  },
-  "version": "0.0.14",
+  "author": "xpriori",
+  "version": "0.0.15",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
     "build": "bunchee -o ./lib/index.js",
     "dev": "bunchee -w --no-clean",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.11.0",
     "@types/bun": "latest",
-    "bunchee": "^5.4.0"
+    "@types/eslint": "^9.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "bunchee": "^5.4.0",
+    "eslint": "^9.11.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -28,5 +33,16 @@
     "axios": "^1.7.7",
     "zod": "^3.23.8"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/phtn/paymongo-fn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/phtn/paymongo-fn/issues"
+  },
+  "homepage": "https://github.com/phtn/paymongo-fn#readme"
 }
