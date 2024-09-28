@@ -59,8 +59,10 @@ This helper is for mutations and expects input as key. It makes your code a bit 
 
 ```ts
 const router = createRouter({
+  // checkout params is inferred by what paymongo.checkout.create accepts
   checkout: checkoutProcedure.mutation(asyncR(paymongo.checkout.create)),
-  retrieve: retrieveProcedure.query(asyncR(paymongo.checkout.retrieve)),
+  // retrieve params is inferred by what paymongo.checkout.retrieve accepts
+  retrieve: retrieveProcedure.mutation(asyncR(paymongo.checkout.retrieve)),
 });
 ```
 
