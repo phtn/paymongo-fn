@@ -23,9 +23,9 @@ bun i @re-up/paymongo-fn
 ```ts
 import { Paymongo } from "@re-up/paymongo-fn";
 
-const paymongo = Paymongo(process.env.PAYMONGO_SK);
+const p = Paymongo(process.env.PAYMONGO_SK);
 
-const onCheckout = async (params) => await paymongo.checkout.create(params);
+const onCheckout = async (params) => await p.checkout.create(params);
 ```
 
 #### tRPC
@@ -33,36 +33,36 @@ const onCheckout = async (params) => await paymongo.checkout.create(params);
 ```ts
 // trpc/router.ts
 
-const router = createRouter({
-    checkout: checkoutProcedure.mutation(async({input}) => await paymongo.checkout.create(input)
+const paymongo = createRouter({
+    checkout: checkoutProcedure.mutation(async({input}) => await p.checkout.create(input)
 })
 
 // trpc/caller.ts
 
-const checkout = async (params) => await trpc.router.checkout(params)
+const checkout = async (params) => await api.paymongo.checkout(params)
 ```
 
 #### async helpers
 
 ```typescript
-interface RParams<T> {
+interface Input<T> {
   input: T;
 }
 
 const asyncR =
   <TParams, TReturn>(fn: (params: TParams) => Promise<TReturn>) =>
-  async ({ input }: RParams<TParams>) =>
+  async ({ input }: Input<TParams>) =>
     await fn(input);
 ```
 
 This helper is for mutations and expects input as key. It makes your code a bit concise and readable.
 
 ```ts
-const router = createRouter({
+const paymongo = createRouter({
   // checkout params is inferred by what paymongo.checkout.create accepts
-  checkout: checkoutProcedure.mutation(asyncR(paymongo.checkout.create)),
+  checkout: checkoutProcedure.mutation(asyncR(p.checkout.create)),
   // retrieve params is inferred by what paymongo.checkout.retrieve accepts
-  retrieve: retrieveProcedure.mutation(asyncR(paymongo.checkout.retrieve)),
+  retrieve: retrieveProcedure.mutation(asyncR(p.checkout.retrieve)),
 });
 ```
 
@@ -76,7 +76,7 @@ const asyncFn =
 This one is a plane async/await wrapper, also type inferred based on the callers params.
 
 ```ts
-const checkout = asyncFn(trpc.router.checkout);
+const checkout = asyncFn(api.paymongo.checkout);
 ```
 
 _re-up.ph_
