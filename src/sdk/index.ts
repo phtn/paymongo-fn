@@ -1,10 +1,10 @@
 import type { SecretOrPublicKey } from "@schema/zod.common";
-import type { AxiosInstance } from "axios";
-import { createAxiosInstance } from "@sdk/axios-instance";
+import type { HttpClient } from "../http/types";
+import { createFetchClient } from "../http/fetch-client";
 
 import {
   createPaymentMethod,
-  retreivePaymentMethod,
+  retrievePaymentMethod,
 } from "@sdk/payment-methods";
 import {
   retrievePaymentIntent,
@@ -41,34 +41,40 @@ import {
   unarchiveLink,
 } from "@sdk/link";
 
-const btoa = (string: string) => {
-  if (typeof window === "undefined") {
-    return Buffer.from(string).toString("base64");
+const toBase64 = (value: string): string => {
+  // Prefer browser's btoa when available
+  if (
+    typeof globalThis !== "undefined" &&
+    typeof (globalThis as { btoa?: unknown }).btoa === "function"
+  ) {
+    return (globalThis as { btoa: (s: string) => string }).btoa(value);
   }
-  return window.btoa(string);
+  // Fallback to Node/Bun Buffer API
+  return Buffer.from(value, "utf8").toString("base64");
 };
 
 const createFn = <TParams, TReturn>(
-  fn: (params: TParams, axiosInstance: AxiosInstance) => Promise<TReturn>,
-  axiosInstance: AxiosInstance,
+  fn: (params: TParams, client: HttpClient) => Promise<TReturn>,
+  client: HttpClient,
 ) => {
-  return (data: TParams) => fn(data, axiosInstance);
+  return (data: TParams) => fn(data, client);
 };
 
 // New function for methods with optional parameters
 const createNoParamFn = <TReturn>(
-  fn: (axiosInstance: AxiosInstance) => Promise<TReturn>,
-  axiosInstance: AxiosInstance,
+  fn: (client: HttpClient) => Promise<TReturn>,
+  client: HttpClient,
 ) => {
-  return () => fn(axiosInstance);
+  return () => fn(client);
 };
 
-const Paymongo = (key: SecretOrPublicKey) => {
-  const axiosInstance = createAxiosInstance({
-    headers: {
-      Authorization: `Basic ${btoa(key)}`,
-    },
-  });
+const Paymongo = (key: SecretOrPublicKey, opts?: { client?: HttpClient }) => {
+  const client =
+    opts?.client ??
+    createFetchClient("https://api.paymongo.com/v1", {
+      // PayMongo expects Basic auth using base64(`${key}:`)
+      Authorization: `Basic ${toBase64(`${key}:`)}`,
+    });
 
   const isSecret = key.includes("sk");
 
@@ -78,52 +84,52 @@ const Paymongo = (key: SecretOrPublicKey) => {
 
   return {
     paymentMethod: {
-      create: createFn(createPaymentMethod, axiosInstance),
-      retrieve: createFn(retreivePaymentMethod, axiosInstance),
+      create: createFn(createPaymentMethod, client),
+      retrieve: createFn(retrievePaymentMethod, client),
     },
     paymentIntent: {
-      create: createFn(createPaymentIntent, axiosInstance),
-      retrieve: createFn(retrievePaymentIntent, axiosInstance),
-      attach: createFn(attachPaymentIntent, axiosInstance),
+      create: createFn(createPaymentIntent, client),
+      retrieve: createFn(retrievePaymentIntent, client),
+      attach: createFn(attachPaymentIntent, client),
     },
     source: {
-      create: createFn(createSource, axiosInstance),
-      retrieve: createFn(retrieveSource, axiosInstance),
+      create: createFn(createSource, client),
+      retrieve: createFn(retrieveSource, client),
     },
     payment: {
-      create: createFn(createPayment, axiosInstance),
-      retrieve: createFn(retrievePayment, axiosInstance),
-      list: createFn(listAllPayments, axiosInstance),
+      create: createFn(createPayment, client),
+      retrieve: createFn(retrievePayment, client),
+      list: createFn(listAllPayments, client),
     },
     checkout: {
-      create: createFn(createCheckoutSession, axiosInstance),
-      retrieve: createFn(retrieveCheckoutSession, axiosInstance),
-      expire: createFn(expireCheckoutSession, axiosInstance),
+      create: createFn(createCheckoutSession, client),
+      retrieve: createFn(retrieveCheckoutSession, client),
+      expire: createFn(expireCheckoutSession, client),
     },
     refund: {
-      create: createFn(createRefund, axiosInstance),
-      retrieve: createFn(retrieveRefund, axiosInstance),
+      create: createFn(createRefund, client),
+      retrieve: createFn(retrieveRefund, client),
     },
     customer: {
-      create: createFn(createCustomer, axiosInstance),
-      retrieve: createFn(retrieveCustomer, axiosInstance),
-      edit: createFn(editCustomer, axiosInstance),
-      delete: createFn(deleteCustomer, axiosInstance),
+      create: createFn(createCustomer, client),
+      retrieve: createFn(retrieveCustomer, client),
+      edit: createFn(editCustomer, client),
+      delete: createFn(deleteCustomer, client),
     },
     webhook: {
-      create: createFn(createWebhook, axiosInstance),
-      retrieve: createFn(retrieveWebhook, axiosInstance),
-      list: createNoParamFn(listWebhooks, axiosInstance),
-      enable: createFn(enableWebhook, axiosInstance),
-      disable: createFn(disableWebhook, axiosInstance),
-      update: createFn(updateWebhook, axiosInstance),
+      create: createFn(createWebhook, client),
+      retrieve: createFn(retrieveWebhook, client),
+      list: createNoParamFn(listWebhooks, client),
+      enable: createFn(enableWebhook, client),
+      disable: createFn(disableWebhook, client),
+      update: createFn(updateWebhook, client),
     },
     link: {
-      create: createFn(createLink, axiosInstance),
-      retrieve: createFn(retrieveLink, axiosInstance),
-      getByReferenceNumber: createFn(getLinkByReferenceNumber, axiosInstance),
-      archive: createFn(archiveLink, axiosInstance),
-      unarchive: createFn(unarchiveLink, axiosInstance),
+      create: createFn(createLink, client),
+      retrieve: createFn(retrieveLink, client),
+      getByReferenceNumber: createFn(getLinkByReferenceNumber, client),
+      archive: createFn(archiveLink, client),
+      unarchive: createFn(unarchiveLink, client),
     },
   };
 };

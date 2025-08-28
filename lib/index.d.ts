@@ -1,85 +1,35 @@
-import * as axios from 'axios';
 import { z } from 'zod';
-
-declare const CustomerResourceSchema: z.ZodObject<{
-    id: z.ZodString;
-    type: z.ZodString;
-    attributes: z.ZodObject<{
-        default_device: z.ZodString;
-        default_payment_method_id: z.ZodNullable<z.ZodString>;
-        email: z.ZodString;
-        first_name: z.ZodString;
-        has_vaulted_payment_methods: z.ZodBoolean;
-        last_name: z.ZodString;
-        livemode: z.ZodBoolean;
-        organization_id: z.ZodOptional<z.ZodString>;
-        phone: z.ZodString;
-        created_at: z.ZodNumber;
-        updated_at: z.ZodNumber;
-    }, "strip", z.ZodTypeAny, {
-        livemode: boolean;
-        created_at: number;
-        updated_at: number;
-        email: string;
-        phone: string;
-        default_device: string;
-        default_payment_method_id: string | null;
-        first_name: string;
-        has_vaulted_payment_methods: boolean;
-        last_name: string;
-        organization_id?: string | undefined;
-    }, {
-        livemode: boolean;
-        created_at: number;
-        updated_at: number;
-        email: string;
-        phone: string;
-        default_device: string;
-        default_payment_method_id: string | null;
-        first_name: string;
-        has_vaulted_payment_methods: boolean;
-        last_name: string;
-        organization_id?: string | undefined;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    type: string;
-    attributes: {
-        livemode: boolean;
-        created_at: number;
-        updated_at: number;
-        email: string;
-        phone: string;
-        default_device: string;
-        default_payment_method_id: string | null;
-        first_name: string;
-        has_vaulted_payment_methods: boolean;
-        last_name: string;
-        organization_id?: string | undefined;
-    };
-    id: string;
-}, {
-    type: string;
-    attributes: {
-        livemode: boolean;
-        created_at: number;
-        updated_at: number;
-        email: string;
-        phone: string;
-        default_device: string;
-        default_payment_method_id: string | null;
-        first_name: string;
-        has_vaulted_payment_methods: boolean;
-        last_name: string;
-        organization_id?: string | undefined;
-    };
-    id: string;
-}>;
-type CustomerResource = z.infer<typeof CustomerResourceSchema>;
 
 declare const SecretOrPublicKeySchema: z.ZodUnion<[z.ZodEffects<z.ZodString, string, string>, z.ZodEffects<z.ZodString, string, string>]>;
 type SecretOrPublicKey = z.infer<typeof SecretOrPublicKeySchema>;
 
-declare const Paymongo: (key: SecretOrPublicKey) => {
+type QueryValue = string | number | boolean | undefined;
+interface RequestOptions {
+    headers?: Record<string, string>;
+    query?: Record<string, QueryValue>;
+    body?: unknown;
+    signal?: AbortSignal;
+}
+interface ResponseEnvelope<T> {
+    data: T;
+}
+interface HttpClient {
+    get<T>(path: string, options?: Omit<RequestOptions, "body">): Promise<ResponseEnvelope<T>>;
+    post<T>(path: string, options?: RequestOptions): Promise<ResponseEnvelope<T>>;
+    put<T>(path: string, options?: RequestOptions): Promise<ResponseEnvelope<T>>;
+    patch<T>(path: string, options?: RequestOptions): Promise<ResponseEnvelope<T>>;
+    delete<T>(path: string, options?: Omit<RequestOptions, "body">): Promise<ResponseEnvelope<T>>;
+}
+declare class HttpError extends Error {
+    readonly status: number;
+    readonly code?: string;
+    readonly details?: unknown;
+    constructor(message: string, status: number, code?: string, details?: unknown);
+}
+
+declare const Paymongo: (key: SecretOrPublicKey, opts?: {
+    client?: HttpClient;
+}) => {
     paymentMethod: {
         create: (data: {
             data: {
@@ -1219,9 +1169,23 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
             id: string;
             email?: string | undefined;
             phone_number?: string | undefined;
-        }) => Promise<axios.AxiosResponse<{
-            data: CustomerResource;
-        }, any>>;
+        }) => Promise<{
+            type: string;
+            attributes: {
+                livemode: boolean;
+                created_at: number;
+                updated_at: number;
+                email: string;
+                phone: string;
+                default_device: string;
+                default_payment_method_id: string | null;
+                first_name: string;
+                has_vaulted_payment_methods: boolean;
+                last_name: string;
+                organization_id?: string | undefined;
+            };
+            id: string;
+        }>;
         edit: (data: {
             data: {
                 attributes: {
@@ -1279,10 +1243,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1296,10 +1260,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1311,10 +1275,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1328,10 +1292,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1345,10 +1309,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1366,10 +1330,10 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
                 type: string;
                 attributes: {
                     status: string;
-                    url: string;
                     livemode: boolean;
                     created_at: number;
                     updated_at: number;
+                    url: string;
                     secret_key: string;
                     events: string[];
                 };
@@ -1892,4 +1856,7 @@ declare const Paymongo: (key: SecretOrPublicKey) => {
     };
 };
 
-export { Paymongo };
+type HeadersRecord = Record<string, string>;
+declare const createFetchClient: (baseUrl: string, defaultHeaders?: HeadersRecord) => HttpClient;
+
+export { type HttpClient, HttpError, Paymongo, type RequestOptions, type ResponseEnvelope, createFetchClient };

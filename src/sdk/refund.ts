@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   RefundResource,
   CreateRefundParams,
@@ -7,26 +7,25 @@ import type {
 
 export const createRefund = async (
   data: CreateRefundParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: RefundResource }>(
-    "/refunds",
-    { data },
-    config,
-  );
+  const res = await client.post<{ data: RefundResource }>("/refunds", {
+    ...options,
+    body: { data },
+  });
 
   return res.data.data;
 };
 
 export const retrieveRefund = async (
   data: RetrieveRefundParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: RefundResource }>(
+  const res = await client.get<{ data: RefundResource }>(
     `/refunds/${data.id}`,
-    config,
+    options,
   );
 
   return res.data.data;
@@ -34,19 +33,19 @@ export const retrieveRefund = async (
 
 // export const listAllRefunds = async (
 //   data: ListAllRefundsParam,
-//   axiosInstance: AxiosInstance,
-//   config?: AxiosRequestConfig,
+//   client: HttpClient,
+//   options?: RequestOptions,
 // ) => {
-//   const queryParams = new URLSearchParams();
-//   if (data.payment_id) queryParams.append("payment_id", data.payment_id);
-//   if (data.limit) queryParams.append("limit", data.limit.toString());
-//   if (data.before) queryParams.append("before", data.before);
-//   if (data.after) queryParams.append("after", data.after);
+//   const queryParams: Record<string, string> = {};
+//   if (data.payment_id) queryParams.payment_id = data.payment_id;
+//   if (data.limit) queryParams.limit = String(data.limit);
+//   if (data.before) queryParams.before = data.before;
+//   if (data.after) queryParams.after = data.after;
 
-//   const res = await axiosInstance.get<{ data: RefundResource[] }>(
-//     `/refunds?${queryParams.toString()}`,
-//     config,
-//   );
+//   const res = await client.get<{ data: RefundResource[] }>("/refunds", {
+//     ...options,
+//     query: queryParams,
+//   });
 
 //   return res.data.data;
 // };

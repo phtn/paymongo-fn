@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CreatePaymentIntentParams,
   PaymentIntentResource,
@@ -8,13 +8,12 @@ import type {
 
 export const createPaymentIntent = async (
   data: CreatePaymentIntentParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: PaymentIntentResource }>(
+  const res = await client.post<{ data: PaymentIntentResource }>(
     "/payment_intents",
-    data,
-    config,
+    { ...options, body: data },
   );
 
   return res.data.data;
@@ -22,17 +21,14 @@ export const createPaymentIntent = async (
 
 export const retrievePaymentIntent = async (
   data: RetrievePaymentIntentParamsUsingPublic,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
   const { id, client_key } = data;
 
-  const res = await axiosInstance.get<{ data: PaymentIntentResource }>(
+  const res = await client.get<{ data: PaymentIntentResource }>(
     `/payment_intents/${id}`,
-    {
-      params: { client_key },
-      ...config,
-    },
+    { ...options, query: { client_key } },
   );
 
   return res.data.data;
@@ -40,14 +36,13 @@ export const retrievePaymentIntent = async (
 
 export const attachPaymentIntent = async (
   data: AttachPaymentIntentParamsUsingPublic,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
   const { id, ...params } = data;
-  const res = await axiosInstance.post<{ data: PaymentIntentResource }>(
+  const res = await client.post<{ data: PaymentIntentResource }>(
     `/payment_intents/${id}/attach`,
-    params,
-    config,
+    { ...options, body: params },
   );
 
   return res.data.data;

@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     // Enable latest features
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
-
+    "allowJs": false,
     // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -15,23 +16,38 @@
     "noEmit": true,
     "declaration": true,
     "outDir": "./lib",
-
     // Best practices
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-
     "baseUrl": "src",
     "paths": {
-      "@schema/*": ["./schema/*"],
-      "@sdk/*": ["./sdk/*"],
-      "@utils/*": ["./utils/*"],
-      "@@trpc/*": ["./trpc/*"]
+      "@schema/*": [
+        "./schema/*"
+      ],
+      "@sdk/*": [
+        "./sdk/*"
+      ]
     }
-  }
+  },
+  "include": [
+    "src/index.ts",
+    "src/http/**/*.ts",
+    "src/sdk/**/*.ts",
+    "src/schema/**/*.ts"
+  ],
+  "exclude": [
+    "src/trpc/**",
+    "src/utils/**",
+    "src/callers/**",
+    "src/sdk/axios-instance.ts",
+    "eslint.config.mjs",
+    "trpc/**",
+    "utils/**",
+    "callers/**"
+  ]
 }

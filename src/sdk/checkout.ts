@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CheckoutParams,
   CheckoutResource,
@@ -8,13 +8,12 @@ import type {
 
 export const createCheckoutSession = async (
   data: CheckoutParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: CheckoutResource }>(
+  const res = await client.post<{ data: CheckoutResource }>(
     "/checkout_sessions",
-    data,
-    config,
+    { ...options, body: data },
   );
 
   return res.data.data;
@@ -22,12 +21,12 @@ export const createCheckoutSession = async (
 
 export const retrieveCheckoutSession = async (
   values: RetrieveCheckoutParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: CheckoutResource }>(
+  const res = await client.get<{ data: CheckoutResource }>(
     `/checkout_sessions/${values.checkout_session_id}`,
-    config,
+    options,
   );
 
   return res.data.data;
@@ -35,12 +34,12 @@ export const retrieveCheckoutSession = async (
 
 export const expireCheckoutSession = async (
   values: ExpireCheckoutParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: CheckoutResource }>(
+  const res = await client.post<{ data: CheckoutResource }>(
     `/checkout_sessions/${values.checkout_session_id}/expire`,
-    config,
+    { ...options },
   );
 
   return res.data.data;

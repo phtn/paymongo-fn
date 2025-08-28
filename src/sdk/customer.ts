@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CreateCustomerParams,
   RetrieveCustomerParams,
@@ -9,54 +9,48 @@ import type {
 
 export const createCustomer = async (
   data: CreateCustomerParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: CustomerResource }>(
-    "/customers",
-    data,
-    config,
-  );
-
+  const res = await client.post<{ data: CustomerResource }>("/customers", {
+    ...options,
+    body: data,
+  });
   return res.data.data;
 };
 
 export const retrieveCustomer = async (
   data: RetrieveCustomerParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: CustomerResource }>(
-    `customers/${data.id}`,
-    config,
+  const res = await client.get<{ data: CustomerResource }>(
+    `/customers/${data.id}`,
+    options,
   );
-
-  return res;
+  return res.data.data;
 };
 
 export const editCustomer = async (
   data: EditCustomerParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.put<{ data: CustomerResource }>(
-    `customers/${data.id}`,
-    data,
-    config,
+  const res = await client.put<{ data: CustomerResource }>(
+    `/customers/${data.id}`,
+    { ...options, body: data },
   );
-
   return res.data.data;
 };
 
 export const deleteCustomer = async (
   data: DeleteCustomerParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.delete<{ data: CustomerResource }>(
-    `customers/${data.id}`,
-    config,
+  const res = await client.delete<{ data: CustomerResource }>(
+    `/customers/${data.id}`,
+    options,
   );
-
   return res.data.data;
 };

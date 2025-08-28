@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CreateSourceParams,
   RetrieveSourceParams,
@@ -8,26 +8,25 @@ import type {
 
 export const createSource = async (
   data: CreateSourceParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: SourceResource }>(
-    "/sources",
-    data,
-    config,
-  );
+  const res = await client.post<{ data: SourceResource }>("/sources", {
+    ...options,
+    body: data,
+  });
 
   return res.data.data;
 };
 
 export const retrieveSource = async (
   data: RetrieveSourceParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: SourceResource }>(
+  const res = await client.get<{ data: SourceResource }>(
     `sources/${data.id}`,
-    config,
+    options,
   );
 
   return res.data.data;

@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   LinkResource,
   CreateLinkParam,
@@ -10,68 +10,60 @@ import type {
 
 export const createLink = async (
   data: CreateLinkParam,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: LinkResource }>(
-    "/links",
-    { data },
-    config,
-  );
-
+  const res = await client.post<{ data: LinkResource }>("/links", {
+    ...options,
+    body: { data },
+  });
   return res.data.data;
 };
 
 export const retrieveLink = async (
   data: RetrieveLinkParam,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: LinkResource }>(
+  const res = await client.get<{ data: LinkResource }>(
     `/links/${data.id}`,
-    config,
+    options,
   );
-
   return res.data.data;
 };
 
 export const getLinkByReferenceNumber = async (
   data: GetLinkByRefParam,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: LinkResource }>(
-    `/links?reference_number=${data.reference_number}`,
-    config,
+  const res = await client.get<{ data: LinkResource }>(
+    `/links`,
+    { ...options, query: { reference_number: data.reference_number } },
   );
-
   return res.data.data;
 };
 
 export const archiveLink = async (
   data: ArchiveLinkParam,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: LinkResource }>(
+  const res = await client.post<{ data: LinkResource }>(
     `/links/${data.id}/archive`,
-    {},
-    config,
+    { ...options, body: {} },
   );
-
   return res.data.data;
 };
 
 export const unarchiveLink = async (
   data: UnarchiveLinkParam,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: LinkResource }>(
+  const res = await client.post<{ data: LinkResource }>(
     `/links/${data.id}/unarchive`,
-    {},
-    config,
+    { ...options, body: {} },
   );
-
   return res.data.data;
 };

@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CreatePaymentParams,
   ListAllPaymentsParams,
@@ -8,29 +8,28 @@ import type {
 
 export const createPayment = async (
   data: CreatePaymentParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: PaymentResource }>(
-    "/payments",
-    data,
-    config,
-  );
+  const res = await client.post<{ data: PaymentResource }>("/payments", {
+    ...options,
+    body: data,
+  });
 
   return res.data.data;
 };
 
 export const listAllPayments = async (
   data: ListAllPaymentsParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{
+  const res = await client.get<{
     data: PaymentResource[];
     has_more: boolean;
   }>("/payments", {
-    ...config,
-    params: { ...data },
+    ...options,
+    query: { ...data },
   });
 
   return res.data.data;
@@ -38,12 +37,12 @@ export const listAllPayments = async (
 
 export const retrievePayment = async (
   data: RetrievePaymentParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: PaymentResource }>(
+  const res = await client.get<{ data: PaymentResource }>(
     `/payments/${data.id}`,
-    config,
+    options,
   );
 
   return res.data.data;

@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { HttpClient, RequestOptions } from "../http/types";
 import type {
   CreatePaymentMethodParams,
   PaymentMethodResource,
@@ -7,26 +7,25 @@ import type {
 
 export const createPaymentMethod = async (
   data: CreatePaymentMethodParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.post<{ data: PaymentMethodResource }>(
+  const res = await client.post<{ data: PaymentMethodResource }>(
     "/payment_methods",
-    data,
-    config,
+    { ...options, body: data },
   );
 
   return res.data.data;
 };
 
-export const retreivePaymentMethod = async (
+export const retrievePaymentMethod = async (
   data: RetrievePaymentMethodParams,
-  axiosInstance: AxiosInstance,
-  config?: AxiosRequestConfig,
+  client: HttpClient,
+  options?: RequestOptions,
 ) => {
-  const res = await axiosInstance.get<{ data: PaymentMethodResource }>(
+  const res = await client.get<{ data: PaymentMethodResource }>(
     `/payment_methods/${data.id}`,
-    config,
+    options,
   );
 
   return res.data.data;
