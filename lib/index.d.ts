@@ -29,6 +29,8 @@ declare class HttpError extends Error {
 
 declare const Paymongo: (key: SecretOrPublicKey, opts?: {
     client?: HttpClient;
+    baseUrl?: string;
+    headers?: Record<string, string>;
 }) => {
     paymentMethod: {
         create: (data: {

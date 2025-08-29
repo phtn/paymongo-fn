@@ -1,0 +1,1 @@
+export const PAYMONGO_BASE_URL = "https://api.paymongo.com/v1";

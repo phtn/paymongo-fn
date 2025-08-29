@@ -51,6 +51,27 @@ const intent = await p.paymentIntent.create({
 
 - Factory: [Paymongo()](src/sdk/index.ts:71) constructs the SDK with a default fetch client and Basic Authorization header using base64("sk_xxx:").
 
+## Configuration (override baseUrl and headers)
+
+You can override the default API base URL and/or add custom headers when constructing the SDK. If you pass a custom `client`, that transport takes full control and the `baseUrl`/`headers` options are not used.
+
+```ts
+import { Paymongo } from "paymongo-fn";
+
+// Defaults to https://api.paymongo.com/v1 and includes Basic Authorization header.
+// You can override the base URL (e.g., for staging) and attach extra headers.
+const p = Paymongo(process.env.PAYMONGO_SK!, {
+  baseUrl: "https://api.paymongo.com/v1", // default; override if needed
+  headers: {
+    "X-Client": "my-app/1.2.3",
+    // Any additional headers to send along with requests
+  },
+});
+```
+
+Precedence:
+- If `client` is provided: it is used directly and you are responsible for base URL, headers, and authorization.
+- Otherwise: a default fetch-based client is created with the provided `baseUrl` and `headers` merged with Basic Authorization.
 ## Custom HTTP stack (bring your own client)
 
 Inject your own transport (e.g., node-http, ky, custom fetch wrapper, retrier). Implement the [HttpClient](src/http/types.ts:14) interface.

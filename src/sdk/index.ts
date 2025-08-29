@@ -1,6 +1,7 @@
 import type { SecretOrPublicKey } from "@schema/zod.common";
 import type { HttpClient } from "../http/types";
 import { createFetchClient } from "../http/fetch-client";
+import { PAYMONGO_BASE_URL } from "../http/constants";
 
 import {
   createPaymentMethod,
@@ -68,12 +69,16 @@ const createNoParamFn = <TReturn>(
   return () => fn(client);
 };
 
-const Paymongo = (key: SecretOrPublicKey, opts?: { client?: HttpClient }) => {
+const Paymongo = (
+  key: SecretOrPublicKey,
+  opts?: { client?: HttpClient; baseUrl?: string; headers?: Record<string, string> },
+) => {
   const client =
     opts?.client ??
-    createFetchClient("https://api.paymongo.com/v1", {
+    createFetchClient(opts?.baseUrl ?? PAYMONGO_BASE_URL, {
       // PayMongo expects Basic auth using base64(`${key}:`)
       Authorization: `Basic ${toBase64(`${key}:`)}`,
+      ...(opts?.headers ?? {}),
     });
 
   const isSecret = key.includes("sk");
