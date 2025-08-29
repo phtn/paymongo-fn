@@ -232,13 +232,39 @@ Prerequisites
   - [lib/paymongo.ts](lib/paymongo.ts:1)
 ```ts
 // lib/paymongo.ts
-import "server-only";
-import { Paymongo } from "paymongo-fn";
 
-export const paymongo = Paymongo(process.env.PAYMONGO_SK!, {
-  // baseUrl: "https://api.paymongo.com/v1", // optional override
-  // headers: { "X-App-Version": "1.0.0" },  // optional extra headers
+import "server-only";
+import {
+  Paymongo,
+  createFetchClient,
+  type CheckoutParams,
+  type CheckoutResource,
+} from "paymongo-fn";
+
+const sk = process.env.PAYMONGO_SK;
+if (!sk) {
+  throw new Error(
+    "PAYMONGO_SK environment variable is not set. Configure your PayMongo secret key on the server.",
+  );
+}
+
+const authorization = `Basic ${Buffer.from(`${sk}:`, "utf8").toString("base64")}`;
+
+export const paymongo = Paymongo(sk);
+
+export const client = createFetchClient(undefined, {
+  authorization,
 });
+
+export async function createCheckoutSession(
+  body: CheckoutParams,
+): Promise<CheckoutResource> {
+  const { data } = await client.post<CheckoutResource>("/checkout_sessions", {
+    body,
+  });
+  return data;
+}
+
 ```
 
 Notes
