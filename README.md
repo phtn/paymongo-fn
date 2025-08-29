@@ -222,3 +222,595 @@ Pre-publish checks:
 - Default HTTP client uses global fetch and works in Node 18+, Bun, and modern browsers.
 - You can override the client per environment (e.g., add retries, timeouts, custom logging).
 - All code is strict TypeScript with no any.
+
+## Next.js App Router examples (server-only)
+
+Prerequisites
+- Install: bun add paymongo-fn
+- Server env: PAYMONGO_SK=sk_test_...
+- Create a server-only SDK instance once:
+  - [lib/paymongo.ts](lib/paymongo.ts:1)
+```ts
+// lib/paymongo.ts
+import "server-only";
+import { Paymongo } from "paymongo-fn";
+
+export const paymongo = Paymongo(process.env.PAYMONGO_SK!, {
+  // baseUrl: "https://api.paymongo.com/v1", // optional override
+  // headers: { "X-App-Version": "1.0.0" },  // optional extra headers
+});
+```
+
+Notes
+- All examples below are server handlers in the Next.js App Router.
+- Replace body shapes with the exact types your flow requires. The SDK validates on the server via Zod schemas.
+- Never expose your secret key to the browser.
+
+### Payment Methods
+
+- Create
+  - [app/api/payment-methods/route.ts](app/api/payment-methods/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.paymentMethod.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/payment-methods/[id]/route.ts](app/api/payment-methods/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.paymentMethod.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Payment Intents
+
+- Create
+  - [app/api/payment-intents/route.ts](app/api/payment-intents/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.paymentIntent.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve (requires client_key)
+  - [app/api/payment-intents/[id]/route.ts](app/api/payment-intents/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(req: Request, ctx: { params: { id: string } }) {
+  const url = new URL(req.url);
+  const client_key = url.searchParams.get("client_key");
+  if (!client_key) return NextResponse.json({ error: "client_key required" }, { status: 400 });
+
+  const data = await paymongo.paymentIntent.retrieve({
+    id: ctx.params.id,
+    client_key,
+  });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Attach
+  - [app/api/payment-intents/[id]/attach/route.ts](app/api/payment-intents/[id]/attach/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request, ctx: { params: { id: string } }) {
+  const body = await req.json();
+  const data = await paymongo.paymentIntent.attach({ id: ctx.params.id, ...body });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Sources
+
+- Create
+  - [app/api/sources/route.ts](app/api/sources/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.source.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/sources/[id]/route.ts](app/api/sources/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.source.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Payments
+
+- Create
+  - [app/api/payments/route.ts](app/api/payments/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.payment.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/payments/[id]/route.ts](app/api/payments/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.payment.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- List
+  - [app/api/payments/list/route.ts](app/api/payments/list/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+// query params: before, after, limit (as needed)
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const params = Object.fromEntries(url.searchParams);
+  const data = await paymongo.payment.list(params as Record<string, string>);
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Checkout Sessions
+
+- Create
+  - [app/api/checkout/route.ts](app/api/checkout/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.checkout.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/checkout/[checkout_session_id]/route.ts](app/api/checkout/[checkout_session_id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { checkout_session_id: string } }) {
+  const data = await paymongo.checkout.retrieve({ checkout_session_id: ctx.params.checkout_session_id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Expire
+  - [app/api/checkout/[checkout_session_id]/expire/route.ts](app/api/checkout/[checkout_session_id]/expire/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(_req: Request, ctx: { params: { checkout_session_id: string } }) {
+  const data = await paymongo.checkout.expire({ checkout_session_id: ctx.params.checkout_session_id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Refunds
+
+- Create
+  - [app/api/refunds/route.ts](app/api/refunds/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.refund.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/refunds/[id]/route.ts](app/api/refunds/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.refund.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Customers
+
+- Create
+  - [app/api/customers/route.ts](app/api/customers/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.customer.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/customers/[id]/route.ts](app/api/customers/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.customer.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Edit
+  - [app/api/customers/[id]/edit/route.ts](app/api/customers/[id]/edit/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function PUT(req: Request, ctx: { params: { id: string } }) {
+  const body = await req.json();
+  const data = await paymongo.customer.edit({ id: ctx.params.id, ...body });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Delete
+  - [app/api/customers/[id]/route.ts](app/api/customers/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.customer.delete({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Webhooks
+
+- Create
+  - [app/api/webhooks/route.ts](app/api/webhooks/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.webhook.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/webhooks/[id]/route.ts](app/api/webhooks/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.webhook.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- List
+  - [app/api/webhooks/list/route.ts](app/api/webhooks/list/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET() {
+  const data = await paymongo.webhook.list();
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Enable
+  - [app/api/webhooks/[id]/enable/route.ts](app/api/webhooks/[id]/enable/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.webhook.enable({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Disable
+  - [app/api/webhooks/[id]/disable/route.ts](app/api/webhooks/[id]/disable/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.webhook.disable({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Update
+  - [app/api/webhooks/[id]/route.ts](app/api/webhooks/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function PUT(req: Request, ctx: { params: { id: string } }) {
+  const body = await req.json();
+  const data = await paymongo.webhook.update({ id: ctx.params.id, ...body });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+### Links
+
+- Create
+  - [app/api/links/route.ts](app/api/links/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const data = await paymongo.link.create(body);
+  return NextResponse.json(data, { status: 201 });
+}
+```
+
+- Retrieve
+  - [app/api/links/[id]/route.ts](app/api/links/[id]/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.link.retrieve({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Get by reference number
+  - [app/api/links/by-reference/route.ts](app/api/links/by-reference/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const reference_number = url.searchParams.get("reference_number");
+  if (!reference_number) return NextResponse.json({ error: "reference_number required" }, { status: 400 });
+
+  const data = await paymongo.link.getByReferenceNumber({ reference_number });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Archive
+  - [app/api/links/[id]/archive/route.ts](app/api/links/[id]/archive/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.link.archive({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+- Unarchive
+  - [app/api/links/[id]/unarchive/route.ts](app/api/links/[id]/unarchive/route.ts:1)
+```ts
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(_req: Request, ctx: { params: { id: string } }) {
+  const data = await paymongo.link.unarchive({ id: ctx.params.id });
+  return NextResponse.json(data, { status: 200 });
+}
+```
+
+## Using SDK types
+
+All request/response types are exported, so you can type your handlers and payloads explicitly.
+
+```ts
+import {
+  type CheckoutParams,
+  type RetrieveCheckoutParams,
+  type ExpireCheckoutParams,
+  type CreatePaymentIntentParams,
+  type RetrievePaymentIntentParamsUsingPublic,
+  type AttachPaymentIntentParamsUsingPublic,
+  type CreatePaymentParams,
+  type RetrievePaymentParams,
+  type ListAllPaymentsParams,
+  type CreatePaymentMethodParams,
+  type RetrievePaymentMethodParams,
+  type CreateSourceParams,
+  type RetrieveSourceParams,
+  type CreateRefundParams,
+  type RetrieveRefundParams,
+  type CreateCustomerParams,
+  type RetrieveCustomerParams,
+  type EditCustomerParams,
+  type DeleteCustomerParams,
+  type CreateWebhookParams,
+  type RetrieveWebhookParams,
+  type EnableWebhookParams,
+  type DisableWebhookParams,
+  type UpdateWebhookParams,
+  type CreateLinkParam,
+  type RetrieveLinkParam,
+  type GetLinkByRefParam,
+  type ArchiveLinkParam,
+  type UnarchiveLinkParam,
+} from "paymongo-fn";
+```
+
+Examples
+
+- Strongly-typed variables:
+
+```ts
+const checkoutParams: CheckoutParams = {
+  data: {
+    attributes: {
+      line_items: [
+        { name: "T-Shirt", amount: 10000, currency: "PHP", quantity: 1, description: "Black L" },
+      ],
+      payment_method_types: ["gcash", "card"],
+      success_url: "https://your-app.com/success",
+      cancel_url: "https://your-app.com/cancel",
+    },
+  },
+};
+```
+
+- Typed body from Next.js Request:
+
+```ts
+export async function POST(req: Request) {
+  const body = (await req.json()) as CheckoutParams;
+  const checkout = await paymongo.checkout.create(body);
+  // ...
+}
+```
+
+- Other endpoint examples:
+
+```ts
+const piCreate: CreatePaymentIntentParams = {
+  data: {
+    attributes: {
+      amount: 10000,
+      currency: "PHP",
+      payment_method_allowed: ["gcash", "card"],
+    },
+  },
+};
+
+const piRetrieve: RetrievePaymentIntentParamsUsingPublic = {
+  id: "pi_123",
+  client_key: "pi_client_key_abc",
+};
+
+const piAttach: AttachPaymentIntentParamsUsingPublic = {
+  id: "pi_123",
+  data: { attributes: { client_key: "pi_client_key_abc", payment_method: "gcash" } },
+};
+
+const payCreate: CreatePaymentParams = {
+  data: {
+    attributes: {
+      amount: 10000,
+      currency: "PHP",
+      source: { type: "source", id: "src_123" },
+    },
+  },
+};
+
+const payList: ListAllPaymentsParams = { limit: "10" };
+
+const pmCreate: CreatePaymentMethodParams = {
+  data: { type: "gcash", details: { /* ... */ } },
+};
+```
+
+Tips
+
+- Import types directly from "paymongo-fn" and annotate your Request JSON parsing via `as TypeName`.
+- When building shared helpers, re-export types from your own module to keep imports consistent across your codebase.
+
+## Quick start with types
+
+You can strongly-type your params and request parsing using the exported types.
+
+```ts
+import { Paymongo, type CheckoutParams, type CreatePaymentIntentParams } from "paymongo-fn";
+
+const p = Paymongo(process.env.PAYMONGO_SK!);
+
+// Typed Checkout params
+const checkoutParams: CheckoutParams = {
+  data: {
+    attributes: {
+      line_items: [
+        { name: "T-Shirt", amount: 10000, currency: "PHP", quantity: 1, description: "Black L" },
+      ],
+      payment_method_types: ["gcash", "card"],
+      success_url: "https://your-app.com/success",
+      cancel_url: "https://your-app.com/cancel",
+    },
+  },
+};
+
+const session = await p.checkout.create(checkoutParams);
+
+// Typed Payment Intent params
+const piParams: CreatePaymentIntentParams = {
+  data: {
+    attributes: {
+      amount: 10000,
+      currency: "PHP",
+      payment_method_allowed: ["gcash", "card"],
+    },
+  },
+};
+
+const intent = await p.paymentIntent.create(piParams);
+```
+
+Type Next.js request bodies:
+
+```ts
+import { type CheckoutParams } from "paymongo-fn";
+import { NextResponse } from "next/server";
+import { paymongo } from "@/lib/paymongo";
+
+export async function POST(req: Request) {
+  const body = (await req.json()) as CheckoutParams;
+  const checkout = await paymongo.checkout.create(body);
+  return NextResponse.json(checkout, { status: 201 });
+}
+```
