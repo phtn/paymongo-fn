@@ -18,13 +18,13 @@ Key source links:
 
 ```zsh
 # bun as the package manager
-bun add @re-up/paymongo-fn
+bun add paymongo-fn
 ```
 
 ## Quick start (default fetch client)
 
 ```ts
-import { Paymongo } from "@re-up/paymongo-fn";
+import { Paymongo } from "paymongo-fn";
 
 // NEVER expose your secret key in the browser.
 // The SDK guards against usage of "sk_" in the browser.
@@ -62,7 +62,7 @@ import {
   type RequestOptions,
   type ResponseEnvelope,
   HttpError,
-} from "@re-up/paymongo-fn";
+} from "paymongo-fn";
 
 const client: HttpClient = {
   async get<T>(path: string, options?: Omit<RequestOptions, "body">): Promise<ResponseEnvelope<T>> {
@@ -168,7 +168,7 @@ The default fetch client throws [HttpError](src/http/types.ts:22) for non-2xx re
 Example:
 
 ```ts
-import { Paymongo, HttpError } from "@re-up/paymongo-fn";
+import { Paymongo, HttpError } from "paymongo-fn";
 
 try {
   const p = Paymongo(process.env.PAYMONGO_SK!);
