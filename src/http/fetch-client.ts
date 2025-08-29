@@ -1,3 +1,4 @@
+import { PAYMONGO_BASE_URL } from "./constants";
 import type { HttpClient, RequestOptions, ResponseEnvelope } from "./types";
 import { HttpError } from "./types";
 
@@ -6,7 +7,9 @@ type HeadersRecord = Record<string, string>;
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null;
 
-const encodeQuery = (query?: Record<string, string | number | boolean | undefined>) => {
+const encodeQuery = (
+  query?: Record<string, string | number | boolean | undefined>,
+) => {
   if (!query) return "";
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
@@ -22,7 +25,8 @@ const mergeHeaders = (a?: HeadersRecord, b?: HeadersRecord): HeadersRecord => ({
   ...(b ?? {}),
 });
 
-const toJson = (body: unknown) => (body === undefined ? undefined : JSON.stringify(body));
+const toJson = (body: unknown) =>
+  body === undefined ? undefined : JSON.stringify(body);
 
 async function parseJsonSafe(res: Response): Promise<unknown> {
   const text = await res.text();
@@ -34,12 +38,22 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
-function extractErrorInfo(payload: unknown): { message: string; code?: string; details?: unknown } {
+function extractErrorInfo(payload: unknown): {
+  message: string;
+  code?: string;
+  details?: unknown;
+} {
   // PayMongo error shape is typically { errors: [{ code, detail, ... }] }
-  if (isObject(payload) && Array.isArray(payload.errors) && payload.errors.length > 0) {
+  if (
+    isObject(payload) &&
+    Array.isArray(payload.errors) &&
+    payload.errors.length > 0
+  ) {
     const first = payload.errors[0];
     if (isObject(first)) {
-      const msg = (typeof first.detail === "string" ? first.detail : undefined) ?? "Request failed";
+      const msg =
+        (typeof first.detail === "string" ? first.detail : undefined) ??
+        "Request failed";
       const code = typeof first.code === "string" ? first.code : undefined;
       return { message: msg, code, details: first };
     }
@@ -49,7 +63,7 @@ function extractErrorInfo(payload: unknown): { message: string; code?: string; d
 }
 
 export const createFetchClient = (
-  baseUrl: string,
+  baseUrl = PAYMONGO_BASE_URL,
   defaultHeaders?: HeadersRecord,
 ): HttpClient => {
   const request = async <T>(
@@ -72,7 +86,10 @@ export const createFetchClient = (
     const res = await fetch(url, {
       method,
       headers,
-      body: method === "GET" || method === "DELETE" ? undefined : toJson(options?.body),
+      body:
+        method === "GET" || method === "DELETE"
+          ? undefined
+          : toJson(options?.body),
       signal: options?.signal,
     });
 

@@ -1890,7 +1890,7 @@ declare const Paymongo: (key: SecretOrPublicKey, opts?: {
 };
 
 type HeadersRecord = Record<string, string>;
-declare const createFetchClient: (baseUrl: string, defaultHeaders?: HeadersRecord) => HttpClient;
+declare const createFetchClient: (baseUrl?: string, defaultHeaders?: HeadersRecord) => HttpClient;
 
 declare const CheckoutParamsSchema: z.ZodObject<{
     data: z.ZodObject<{
